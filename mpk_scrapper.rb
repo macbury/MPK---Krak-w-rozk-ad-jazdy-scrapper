@@ -2,6 +2,9 @@ class MPKScrapper
 	RootURL = "http://rozklady.mpk.krakow.pl/"
 	LineURL = "/linie.aspx"
 	
+	BUS = 0
+	TRAMWAJ = 1
+	
 	attr_accessor :logger
 	
 	def initialize(logger)
@@ -14,26 +17,47 @@ class MPKScrapper
 	end
 	
 	def parse_lines
-		self.logger.info "Opening url: #{LineURL}"
-		doc = Nokogiri::HTML(open(File.join([RootURL, LineURL])))
-		lines = {}
+		url = File.join([RootURL, LineURL])
+		self.logger.info "Opening url: #{url}"
+		doc = Nokogiri::HTML(open(url))
+		
+		lines = []
 		
 		doc.css("table").each do |table|
-			bus_type = table.at_css("th").text
-			if bus_type =~ /(autobusowe|tramwajowe|aglomeracyjne)/i
-				self.logger.debug ">>>>>>>>>>>>>>>> [ #{bus_type.strip} ] <<<<<<<<<<<<<<<<"
+			bus_description = table.at_css("th").text
+			
+			if bus_description =~ /(autobusowe|aglomeracyjne)/i
+				bus_type = BUS
+			elsif bus_description =~ /tramwajowe/i
+				bus_type = TRAMWAJ
+			else
+				bus_type = false
+			end
+			
+			if bus_type
+				self.logger.debug ">>>>>>>>>>>>>>>> [ #{bus_type} ] <<<<<<<<<<<<<<<<"
 
 				table.css("td a").each do |line|
 					stops_with_url = self.parse_bus_stop(line.text, line[:href])
 					
+					line = {
+						:number => line.text.to_i,
+						:description => bus_description,
+						:type => bus_type,
+						:directions => {}
+					}
+					
 					stops_with_url.each do |direction, stops|
-						lines[line.text + " - " + direction] = {}
+						line[:directions][direction] = []
 						stops.each do |stop, url|
 							self.logger.debug "&&&&&&&&&&&&&&&&&&&&& #{stop} &&&&&&&&&&&&&&&&&&&&&"
 							next if url.nil?
-							lines[line.text + " - " + direction][stop] = self.parse_time_table_for_stop_url(url)
+							line[:directions][direction] << { :time => self.parse_time_table_for_stop_url(url), :name => stop }
 						end
 					end
+					
+					#puts line.to_yaml
+					lines << line
 				end
 			end
 		end

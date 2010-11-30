@@ -10,6 +10,7 @@
 require "rubygems"
 require 'nokogiri'
 require 'open-uri'
+require "yaml"
 require "active_model"
 require 'digest/md5'
 require "logger"
