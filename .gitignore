@@ -1,0 +1,8 @@
+.sqlite3
+.DS_STORE
+*.DS_STORE
+*.sqlite3
+*.log
+.log
+.DS_Store
+*.DS_Store
