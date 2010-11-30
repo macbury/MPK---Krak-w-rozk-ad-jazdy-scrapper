@@ -32,6 +32,7 @@ class SqliteDumper
 		
 		self.logger.info "Dumping bus plan to file..."
 		
+		#ActiveRecord::Base.execute("INSERT ")
 	end
 	
 	

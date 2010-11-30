@@ -91,7 +91,7 @@ class MPKScrapper
 				
 				hour = row[hour_index].text.strip
 				row[hour_minutes].text.split(" ").map(&:strip).each do |minute|
-					minutes = hour.to_i * 60 + minutes.to_i
+					minutes = hour.to_i * 60 + minute.to_i
 					cursing_days[day] = [] unless cursing_days[day]
 					cursing_days[day] << minutes
 					self.logger.debug "#{hour}:#{minute} -> #{minutes}"
