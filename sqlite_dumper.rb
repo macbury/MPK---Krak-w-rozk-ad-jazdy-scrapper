@@ -9,15 +9,11 @@ class SqliteDumper
 		db_id = Digest::MD5.hexdigest(dump.inspect)
 		self.logger.info "DB checksum is #{db_id}"
 		
-		db_path = "./stores/#{db_id}.sqlite3"
+		db_path = "./tmp/#{db_id}.sqlite3"
 		
 		if File.exists?(db_path)
 			self.logger.info "DB with the same data exists..."
 			return
-		end
-		
-		File.open("./version.txt", "w") do |file|
-			file.write db_id
 		end
 		
 		self.logger.info "Creating sqlite3 file: #{db_path}"
@@ -30,10 +26,44 @@ class SqliteDumper
 		ActiveRecord::Base.logger = self.logger
 		ActiveRecord::Migrator.migrate('db/migrate', nil)
 		
+		db = SQLite3::Database.new(db_path)
+		
 		self.logger.info "Dumping bus plan to file..."
 		
-		#ActiveRecord::Base.execute("INSERT ")
+		line_index = 0
+		plan_index = 0
+		stop_index = 0
+		dump.each do |line|
+			line[:directions].each do |direction, stops|
+				sql = "INSERT INTO lines (id, number, type, direction, description) VALUES (#{line_index}, #{line[:number]}, #{line[:type]}, #{direction.inspect}, #{line[:description].inspect})"
+				
+				ActiveRecord::Base.connection.execute(sql)
+				
+				stops.each_with_index do |stop|
+					name = stop[:name]
+					
+					sql = "INSERT INTO stops (id, line_id, name) VALUES (#{stop_index}, #{line_index}, #{name.inspect})"
+					ActiveRecord::Base.connection.execute(sql)
+
+					stop[:time].each do |day_type, times|
+						times.each do |time|
+							sql = "INSERT INTO plan (id, stop_id, type, time) VALUES (#{plan_index}, #{stop_index}, #{day_type}, #{time})"
+
+							ActiveRecord::Base.connection.execute(sql)
+							plan_index += 1
+						end
+					end
+					
+					stop_index += 1
+				end
+				
+				line_index += 1
+			end
+		end
+		
+		File.open("./version.txt", "w") do |file|
+			file.write db_id
+		end
+		
 	end
-	
-	
 end

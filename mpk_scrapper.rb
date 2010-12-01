@@ -2,6 +2,10 @@ class MPKScrapper
 	RootURL = "http://rozklady.mpk.krakow.pl/"
 	LineURL = "/linie.aspx"
 	
+	WORKING = 0
+	SATURDAY = 1
+	SUNDAY = 2
+	
 	BUS = 0
 	TRAMWAJ = 1
 	
@@ -24,7 +28,7 @@ class MPKScrapper
 		lines = []
 		
 		doc.css("table").each do |table|
-			bus_description = table.at_css("th").text
+			bus_description = table.at_css("th").text.strip.gsub(/[a-z0-9\s]+/i, "")
 			
 			if bus_description =~ /(autobusowe|aglomeracyjne)/i
 				bus_type = BUS
@@ -72,8 +76,15 @@ class MPKScrapper
 		time_table = doc.at_css("body > table").css("tr table")[1]
 		
 		cursing_days = {}
+		day_index = SUNDAY
 		time_table.css("tr")[0].css("td").each do |td|
-			cursing_days[td.text] = []
+			if td.text =~ /soboty/i
+				day_index = SATURDAY
+			elsif td.text =~ /powszedni/i
+				day_index = WORKING
+			end
+			
+			cursing_days[day_index] = []
 		end
 		
 		self.logger.debug "Cursing days: #{cursing_days.map{|d, t| d}.join(", ")}"

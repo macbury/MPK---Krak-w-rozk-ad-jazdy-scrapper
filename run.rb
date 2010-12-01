@@ -15,12 +15,15 @@ require "active_model"
 require 'digest/md5'
 require "logger"
 require 'active_record'
+require 'sqlite3'
 require "./mpk_scrapper"
 require './sqlite_dumper'
 logger = Logger.new(STDOUT)
 logger.level = Logger::INFO
 
 DEBUG = true
+
+#SqliteDumper.new(logger, YAML.load_file("./example.yml"))
 
 scrapper = MPKScrapper.new(logger)
 scrapper.run

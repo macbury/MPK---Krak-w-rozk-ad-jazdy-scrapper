@@ -10,7 +10,6 @@ class CreateLines < ActiveRecord::Migration
 		create_table :stops do |t|
 			t.integer :line_id
 			t.string :name
-			t.integer :position, :default => 0
 		end
 		
 		create_table :plan do |t|
