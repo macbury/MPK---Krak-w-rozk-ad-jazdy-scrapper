@@ -65,5 +65,9 @@ class SqliteDumper
 			file.write db_id
 		end
 		
+		self.logger.info "Compressing database..."
+		shell = "cd ./tmp; tar -czf ../stores/#{db_id}.tar.gz #{db_id}.sqlite3"
+		self.logger.info "exec: #{shell}"
+		exec(shell)
 	end
 end

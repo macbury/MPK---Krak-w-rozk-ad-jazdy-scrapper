@@ -23,7 +23,7 @@ logger.level = Logger::INFO
 
 DEBUG = true
 
-#SqliteDumper.new(logger, YAML.load_file("./example.yml"))
+SqliteDumper.new(logger, YAML.load_file("./example.yml"))
 
 scrapper = MPKScrapper.new(logger)
 scrapper.run
